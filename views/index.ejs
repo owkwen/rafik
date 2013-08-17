@@ -1,31 +1,66 @@
 <html>
 <head>
 	<title>Rafik demaaaaaaaaaaa</title>
-	<script type="text/javascript" src="http://cdn.peerjs.com/0/peer.min.js"></script>
-	<script type="text/javascript" src="http://codeorigin.jquery.com/jquery-2.0.3.min.js"></script>
+	<script type="text/javascript" src="javascripts/peer.js"></script>
+	<script type="text/javascript" src="javascripts/jquery.js"></script>
 	<script type="text/javascript" src="javascripts/uuid.js"></script>
 </head>
 <body>
 <script type="text/javascript">
-var code = uuid.v4(); 
-var peer = new Peer(code, {host: '192.168.2.17', port: 3001});
 
-peer.on('connection', function(conn){
-  conn.on('data', function(data) {
-    alert(data);
-  });
-});
+//disable double tap = zoom, seems not working
+(function($) {
+  $.fn.nodoubletapzoom = function() {
+      $(this).bind('touchstart', function preventZoom(e) {
+        var t2 = e.timeStamp
+          , t1 = $(this).data('lastTouch') || t2
+          , dt = t2 - t1
+          , fingers = e.originalEvent.touches.length;
+        $(this).data('lastTouch', t2);
+        if (!dt || dt > 500 || fingers > 1) return; // not double-tap
+
+        e.preventDefault(); // double tap - prevent the zoom
+        // also synthesize click events we just swallowed up
+        $(this).trigger('click').trigger('click');
+      });
+  };
+})(jQuery);
 
 
+var conn;
+var peer = new Peer({host: '10.0.0.45', port: 3001});
 
-$().ready(function(){
-$("#id").text(code);
 
-$("#remote-id").focusout(function(){
+peer.on('open', function(id){
+	$("#id").text(id);
+})
+peer.on('connection', connect);
+function connect(c){
+	$('#connection').remove();
+	$('#main').fadeIn();
+	conn = c;
 
-	var conn = peer.connect($("#remote-id"));
-	conn.on('open', function() {
-	  conn.send('Hello world!');
+	conn.on('data', function(data){
+		console.log(data);
+	});
+	conn.on('close', function(err){ console.log('conn closed');
+	});
+
+}
+
+$(document).ready(function(){
+
+	$('#connect').click(function(){
+		var c = peer.connect($('#remote-id').val());
+		c.on('open', function(){
+			connect(c);
+		});
+	
+		c.on('error', function(err){console.log(err);});
+	});
+	$("#more").click(function(){
+		conn.send('trying');
+
 	});
 
 
@@ -33,16 +68,70 @@ $("#remote-id").focusout(function(){
 
 
 
+var rafik = {
+
+	buttonClick: function(app, id, name){
+		name = (typeof name === "undefined") ? id : name;
+		element = document.getElementById(id);
+		element.addEventListener('click', function(e){
+			conn.send({'app':app, 'type':'buttonClick', 'id':id, 'name':name});
+		});
+	},
+	sendData: function(data){
+		conn.send({'app':app , 'type':'data', 'data':data});
+	},
+	swipe: function(app, id, name){
+		name = (typeof name === "undefined") ? id : name;
+		element = document.getElementById(id);
+		element.addEventListener('touchmove', function(e){
+			e.preventDefault();
+    		var touch = e.touches[0];
+    		conn.send({'app':app, 'type':'swipe', 'id':id, 'name':name, 'swipe X': touch.pageX, 'swipe Y': touch.pageY});
+		}, false);
+	}
+
+ 
+
+};
 
 
 
 
-});
+
 </script>
 <div id="connection">
 Your id : <span id="id"></span>
 
-<input type="text" id="remote-id"/>
+<input type="text" id="remote-id"/> <a id="connect" href="#">Connect</a>
+
+
+</div>
+<script type="text/javascript">
+$(document).ready(function(){
+	$("#snes").click(function(){
+		$("#main").empty().load("./snes.html");
+	});
+	$("#earth").click(function(){
+		$("#main").empty().load("earth.html");
+	});
+	$("#grooveshark").click(function(){
+		$("#main").empty().load("grooveshark.html");
+	});
+	$("#chat").click(function(){
+		$("#main").empty().load("chat.html");
+	});
+
+
+});
+</script>
+<div id="menu" style="height:10px">
+	<a id="snes" href="#">snes</a>
+	<a id="earth" href="#">earth</a>
+	<a id="grooveshark" href="#">grooveshark</a>
+	<a id="chat" href="#">chat</a>
+</div>
+<div id="main" style="display:none">
+
 </div>
 </body>
 </html>
