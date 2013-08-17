@@ -1,0 +1,25 @@
+{
+    "name" : "rafiq",
+    "description" : "",
+    "version" : "0.1.1",
+    "private" : true,
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/owkwen/rafik.git"
+    },
+    "main" : "index.js",
+    "scripts": {
+        "start": "nodemon app.js"
+    },
+    "dependencies" : {
+        "node-uuid" : "*",
+        "socket.io":"*",
+        "peer":"*"
+    },
+    "license" : "MIT",
+    "author" : {
+        "name" : "Ilyas Faraj",
+        "email" : "faraj.ilyas@gmail.com",
+        "url" : "http://nano.ma"
+    }
+}
